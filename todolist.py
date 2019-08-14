@@ -58,3 +58,29 @@ def new_todo():
 
 # 检索单个todo
 @app.route("/todos/<string:todo_id>", methods=['PUT'])
+def update_todo(todo_id):
+    return jsonify(r.table('todos').get(todo_id).replace(request.json).run(g.rdb_conn))
+
+@app.route("/todos/<string:todo_id>", methods=['PATCH'])
+def patch_todo(todo_id):
+    return jsonify(r.table('todos').get(todo_id).update(request.json).run(g.rdb_conn))
+
+# 删除一个todo
+@app.route("/todos/<string:todo_id>", methods=['DELETE'])
+def delete_todo(todo_id):
+    return jsonify(r.table('todos').get(todo_id).delect().run(g.rdb_conn))
+
+# 根目录渲染模板
+@app.route("/")
+def show_todos():
+    return render_template('todo.html')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Run the Flask todo app')
+    parser.add_argument('--setup', dest='run_setup', action='store_true')
+
+    args = parser.parse_args()
+    if args.run_setup:
+        dbSetup()
+    else:
+        app.run(debug=True)
