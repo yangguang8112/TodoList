@@ -86,4 +86,4 @@ if __name__ == "__main__":
     if args.run_setup:
         dbSetup()
     else:
-        app.run(host='0.0.0.0', port=6473, debug=True)
+        app.run(host='0.0.0.0', port=2019)
