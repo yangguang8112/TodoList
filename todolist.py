@@ -5,7 +5,8 @@ import os
 
 from flask import Flask, g, jsonify, render_template, request, abort
 
-import rethinkdb as r
+from rethinkdb import RethinkDB
+r = RethinkDB()
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 # DB config
@@ -18,7 +19,9 @@ def dbSetup():
     connection = r.connect(host=RDB_HOST, port=RDB_PORT)
     try:
         r.db_create(TODO_DB).run(connection)
-        r.db(TODO_DB).table_create('todos').run(connection)
+        connection.close()
+        connection = r.connect(host=RDB_HOST, port=RDB_PORT, db=TODO_DB)
+        r.table_create('todos').run(connection)
         print('数据库初始化完成。请不加--setup运行app')
     except RqlRuntimeError:
         print('数据库已存在。请不加--setup运行app')
@@ -68,7 +71,7 @@ def patch_todo(todo_id):
 # 删除一个todo
 @app.route("/todos/<string:todo_id>", methods=['DELETE'])
 def delete_todo(todo_id):
-    return jsonify(r.table('todos').get(todo_id).delect().run(g.rdb_conn))
+    return jsonify(r.table('todos').get(todo_id).delete().run(g.rdb_conn))
 
 # 根目录渲染模板
 @app.route("/")
@@ -83,4 +86,4 @@ if __name__ == "__main__":
     if args.run_setup:
         dbSetup()
     else:
-        app.run(debug=True)
+        app.run(host='0.0.0.0', port=6473, debug=True)
